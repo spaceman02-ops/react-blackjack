@@ -44,4 +44,5 @@ body {
     background-color: gainsboro;
     margin: 5px;
     cursor: pointer;
+    user-select: none;
 }

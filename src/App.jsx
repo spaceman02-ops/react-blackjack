@@ -8,28 +8,97 @@ function App() {
     const [stay, setStay] = useState(false);
     const [dealerstay, setdealerstay] = useState(false);
     const [gameover, setgameover] = useState(false);
+    const [money, setmoney] = useState(25);
+    const [bet, setbet] = useState(1);
 
-    const showDown = useCallback(
-        function showDown() {
-            let pTotal = totalHand(hand);
-            let dTotal = totalHand(dealer);
-            setTimeout(() => {
-                if (dTotal >= pTotal) {
-                    alert("You lose!");
-                } else {
-                    alert("You win!");
+    const evalGame = useCallback(
+        function evalGame() {
+            function pAlert(str) {
+                setTimeout(() => alert(str), 2000);
+            }
+
+            function endGame(type) {
+                switch (type) {
+                    case "dealerbust":
+                        pAlert("Dealer busts!");
+                        setmoney(bet + money);
+                        break;
+                    case "playerbust":
+                        pAlert("Player busts!");
+                        setmoney(money - bet);
+                        break;
+                    case "dealerwin":
+                        pAlert("Dealer wins!");
+                        setmoney(money - bet);
+                        break;
+                    case "playerwin":
+                        pAlert("Player wins!");
+                        setmoney(bet + money);
+                        break;
+                    case "dealerblackjack":
+                        pAlert("Blackjack! Dealer wins!");
+                        setmoney(money - bet);
+                        break;
+                    case "playerblackjack":
+                        pAlert("Blackjack! Player wins!");
+                        setmoney(bet + money);
+                        break;
+                    default:
+                        pAlert("error!");
+                        break;
                 }
                 setgameover(true);
-            }, 500);
+            }
+
+            if (!gameover) {
+                let pTotal = totalHand(hand);
+                let dTotal = totalHand(dealer);
+                if (hand.length === 2 && dealer.length === 2) {
+                    if (dTotal === 21) {
+                        endGame("dealerblackjack");
+                        return;
+                    }
+
+                    if (pTotal === 21) {
+                        endGame("playerblackjack");
+                        return;
+                    }
+                }
+                if (!stay || !dealerstay) {
+                    if (pTotal > 21) {
+                        endGame("playerbust");
+                        return;
+                    }
+                    if (dTotal > 21) {
+                        endGame("dealerbust");
+                        return;
+                    }
+                }
+                if (stay && dealerstay) {
+                    if (pTotal > 21) {
+                        endGame("playerbust");
+                        return;
+                    }
+                    if (dTotal > 21) {
+                        endGame("dealerbust");
+                        return;
+                    }
+                    if (dTotal >= pTotal) {
+                        endGame("dealerwin");
+                        return;
+                    } else {
+                        endGame("playerwin");
+                        return;
+                    }
+                }
+            }
         },
-        [hand, dealer]
+        [hand, dealer, stay, dealerstay, gameover, bet, money]
     );
 
     useEffect(() => {
-        if (stay && dealerstay && !gameover) {
-            showDown();
-        }
-    }, [dealerstay, stay, showDown, gameover]);
+        evalGame();
+    });
 
     function drawCards(numOfCards) {
         let cards = [];
@@ -43,57 +112,56 @@ function App() {
     function newHand() {
         return drawCards(2);
     }
-
-    function handleDeal() {
+    function handleNewGame() {
+        setactive(false);
+        setbet(0);
         let h = newHand();
         let d = newHand();
         sethand(h);
         setdealer(d);
-        setactive(true);
         setStay(false);
         setdealerstay(false);
+    }
+    function handleDeal() {
+        setactive(true);
         setgameover(false);
     }
-
+    function handleBet() {
+        if (!active) {
+            let b = bet;
+            b++;
+            setbet(b);
+        }
+    }
     function handleHit() {
         let h = [...hand];
         let card = drawCards(1);
         h.push(...card);
         sethand(h);
         console.log("Player hits!");
-        if (bustCheck(h)) {
-            alert("You lose!");
-            setgameover(true);
-        }
     }
 
-    function handleStay() {
+    async function handleStay() {
         setStay(true);
-        dealerTurn();
+        await dealerTurn();
     }
 
     function dealerHit(d) {
         let card = drawCards(1);
         d.push(...card);
         console.log("Dealer hits!");
-        if (bustCheck(d)) {
-            alert("You win!");
-            setgameover(true);
-            return d;
-        } else {
-            return d;
-        }
+        return d;
     }
 
-    function dealerTurn() {
+    async function dealerTurn() {
         let d = [...dealer];
         let total = totalHand(d);
 
         while (total < 17) {
             d = dealerHit(d);
-            console.log(d);
             total = totalHand(d);
         }
+
         setdealer(d);
         setdealerstay(true);
     }
@@ -107,11 +175,6 @@ function App() {
             total = total - 10 * aces.length;
         }
         return total;
-    }
-
-    function bustCheck(h) {
-        let total = totalHand(h);
-        return total > 21;
     }
 
     function displayHand(h) {
@@ -133,6 +196,9 @@ function App() {
     return (
         <div className="deckContainer">
             <div className="buttonContainer">
+                <div className="button" onClick={handleNewGame}>
+                    New Game!
+                </div>
                 <div className="button" onClick={handleDeal}>
                     Deal me in!
                 </div>
@@ -142,15 +208,20 @@ function App() {
                 <div className="button" onClick={handleStay}>
                     I stay!
                 </div>
+                <div className="button" onClick={handleBet}>
+                    Bet+
+                </div>
             </div>
             {active && (
                 <div className="handContainer">
                     <div className="dealerHand">{dealerDisplay}</div>
                     {/* <p>{totalHand(dealer).toString()}</p> */}
                     <div className="playerHand">{playerDisplay}</div>
-                    <p>{totalHand(hand).toString()}</p>
+                    <h2>Your total is: {totalHand(hand).toString()}</h2>
                 </div>
             )}
+            <h2>Your bet is: {bet}</h2>
+            <h2>You have ${money}</h2>
         </div>
     );
 }
