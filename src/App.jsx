@@ -89,7 +89,7 @@ function App() {
         let d = [...dealer];
         let total = totalHand(d);
 
-        while (total <= 15) {
+        while (total < 17) {
             d = dealerHit(d);
             console.log(d);
             total = totalHand(d);
@@ -121,7 +121,7 @@ function App() {
         return display;
     }
     const blankCard = (
-        <img className="card" src="back.png" key="1001" alt="back" />
+        <img className="card dealer" src="back.png" key="1001" alt="back" />
     );
     const fullDealer = displayHand(dealer);
     let dealerDisplay = [blankCard, fullDealer.slice(1, fullDealer.length)];
@@ -146,7 +146,7 @@ function App() {
             {active && (
                 <div className="handContainer">
                     <div className="dealerHand">{dealerDisplay}</div>
-                    <p>{totalHand(dealer).toString()}</p>
+                    {/* <p>{totalHand(dealer).toString()}</p> */}
                     <div className="playerHand">{playerDisplay}</div>
                     <p>{totalHand(hand).toString()}</p>
                 </div>

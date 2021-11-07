@@ -1,3 +1,11 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #029c2a;
+}
+
 .deckContainer {
     display: flex;
     flex-direction: column;
@@ -9,6 +17,13 @@
 .card {
     height: 250px;
     margin: 5px;
+    box-shadow: 2px 2px 2px 1px rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+}
+
+.dealer {
+    background-color: white;
+    border: 2px solid;
 }
 
 .buttonContainer {
